@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: geocompute-postgres
+    environment:
+      POSTGRES_DB: geocompute
+      POSTGRES_USER: geocompute
+      POSTGRES_PASSWORD: geocompute
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geocompute -d geocompute"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: geocompute-api
+    environment:
+      DATABASE_URL: postgresql+psycopg2://geocompute:geocompute@db:5432/geocompute
+      APP_NAME: GeoCompute Engine
+      APP_ENV: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
