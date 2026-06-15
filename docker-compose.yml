@@ -24,11 +24,16 @@ services:
       DATABASE_URL: postgresql+psycopg2://geocompute:geocompute@db:5432/geocompute
       APP_NAME: GeoCompute Engine
       APP_ENV: development
-    ports:
-      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+    ports:
+      - "8000:8000"
     restart: unless-stopped
 
 volumes:
